@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="theme-toggle">
+        <button onclick="toggleTheme()" id="themeToggle">Dark Mode</button>
+    </div>
+
+    <div class="container">
+        <!-- Login/Register Section -->
+        <div id="authSection">
+            <h1>Task Manager Pro</h1>
+            <div class="auth-forms">
+                <div class="form-box">
+                    <h2>Login</h2>
+                    <input type="text" id="loginUsername" placeholder="Username" autocomplete="username">
+                    <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+                    <button onclick="login()">Login</button>
+                </div>
+                <div class="form-box">
+                    <h2>Register</h2>
+                    <input type="text" id="registerUsername" placeholder="Username (min 3 chars)" autocomplete="off">
+                    <input type="password" id="registerPassword" placeholder="Password (min 6 chars)" autocomplete="new-password">
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <button onclick="register()">Register</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #ddd;">
+                <div class="form-box" style="max-width: 400px; margin: 0 auto;">
+                    <h2 style="text-align: center;">Register as Admin</h2>
+                    <input type="text" id="adminUsername" placeholder="Username (min 3 chars)" autocomplete="off">
+                    <input type="password" id="adminPassword" placeholder="Password (min 6 chars)" autocomplete="new-password">
+                    <input type="text" id="adminSecretCode" placeholder="Secret Code" autocomplete="off">
+                    <button onclick="registerAdmin()">Register as Admin</button>
+                    <p style="font-size: 12px; color: #666; text-align: center; margin-top: 10px;">
+                        Max 3 admins allowed
+                    </p>
+                </div>
+            </div>
+
+            <div id="authMessage"></div>
+        </div>
+
+        <!-- Task Section -->
+        <div id="taskSection" style="display: none;">
+            <div class="task-header">
+                <h1>My Tasks</h1>
+                <div class="user-info">
+                    <span id="welcomeMessage"></span>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                </div>
+            </div>
+
+            <!-- Task Stats -->
+            <div class="task-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalTasks">0</div>
+                    <div class="stat-label">Total Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="activeTasks">0</div>
+                    <div class="stat-label">Active</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="completedTasks">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="add-task-form">
+                <h3>Add New Task</h3>
+                <input type="text" id="newTaskTitle" placeholder="Task title" maxlength="200">
+                <textarea id="newTaskDescription" placeholder="Description (optional)" rows="2"></textarea>
+                
+                <div class="task-options">
+                    <div class="option-group">
+                        <label>Priority:</label>
+                        <select id="newTaskPriority">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label>Category:</label>
+                        <select id="newTaskCategory">
+                            <option value="personal">Personal</option>
+                            <option value="work">Work</option>
+                            <option value="urgent">Urgent</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="option-group">
+                        <label>Due Date:</label>
+                        <input type="date" id="newTaskDueDate">
+                    </div>
+                </div>
+                
+                <button onclick="addTask()" class="btn-primary">Add Task</button>
+            </div>
+
+            <!-- Task Controls -->
+            <div class="task-controls">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search tasks..." onkeyup="searchTasks()">
+                </div>
+                
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+                    <button class="filter-btn" onclick="filterTasks('active')">Active</button>
+                    <button class="filter-btn" onclick="filterTasks('completed')">Completed</button>
+                </div>
+                
+                <div class="sort-dropdown">
+                    <label>Sort by:</label>
+                    <select id="sortSelect" onchange="sortTasks()">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="alpha">Alphabetical</option>
+                        <option value="priority">Priority</option>
+                    </select>
+                </div>
+                
+                <button onclick="clearCompleted()" class="btn-danger">Clear Completed</button>
+            </div>
+
+            <!-- Task List -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <h3>No tasks yet</h3>
+                <p>Add your first task above to get started</p>
+            </div>
+
+            <div id="loadingState" class="loading-state">
+                <div class="spinner"></div>
+                <p>Loading tasks...</p>
+            </div>
+
+            <ul id="taskList"></ul>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="closeEditModal()">&times;</span>
+            <h2>Edit Task</h2>
+            
+            <input type="text" id="editTaskTitle" placeholder="Task title">
+            <textarea id="editTaskDescription" placeholder="Description" rows="3"></textarea>
+            
+            <div class="task-options">
+                <div class="option-group">
+                    <label>Priority:</label>
+                    <select id="editTaskPriority">
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>Category:</label>
+                    <select id="editTaskCategory">
+                        <option value="personal">Personal</option>
+                        <option value="work">Work</option>
+                        <option value="urgent">Urgent</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="option-group">
+                    <label>Due Date:</label>
+                    <input type="date" id="editTaskDueDate">
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button onclick="saveTaskEdit()" class="btn-primary">Save Changes</button>
+                <button onclick="closeEditModal()" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
